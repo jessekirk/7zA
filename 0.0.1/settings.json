@@ -1,0 +1,14 @@
+{
+    "7za": "Dependencies/Build/7z/x64/7za.exe",
+    "repo": [
+        "d:/Gitlab/win11",
+        "c:/Users/jesse.kirk/desktop/Gitlab/win11",
+        "c:/Users/jesse/desktop/Gitlab/win11"
+    ],
+    "build": [
+        {
+            "args": "a -mx9 -mmt3 -md=2048m -m0=lzma2:fb64 -ms=16384m -bt",
+            "includes": "Dependencies/Includes/*.*"
+        }
+    ]
+}
