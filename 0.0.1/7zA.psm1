@@ -20,7 +20,7 @@ function buildreleasable
 
     New-Item -Path $fullyqualifieddestinationpath -Name 'Release\bin' -ItemType Directory -Force -Verbose | Out-Null
     Move-Item -Path $(Join-Path -Path $fullyqualifieddestinationpath -ChildPath '*.7z') -Destination $(Join-Path -Path $fullyqualifieddestinationpath -ChildPath 'Release') -Verbose
-    (Join-Path -Path $i.ModuleBase -ChildPath $json.includes -Resolve) | Copy-Item -Destination $(Join-Path -Path $fullyqualifieddestinationpath -ChildPath 'Release\bin') -Container -Verbose
+    Join-Path -Path $i.ModuleBase -ChildPath $json.includes -Resolve | Copy-Item -Destination $(Join-Path -Path $fullyqualifieddestinationpath -ChildPath 'Release\bin') -Container -Verbose
     sha256hashpackage
 }
 
