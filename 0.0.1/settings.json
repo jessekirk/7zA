@@ -14,5 +14,17 @@
         "d:/Gitlab/win11",
         "c:/Users/jesse.kirk/desktop/Gitlab/win11",
         "c:/Users/jesse/desktop/Gitlab/win11"
-    ]
+    ],
+    "helpers": {
+        "curl": {
+            "script": "helpers/curl.ps1"
+        },
+        "msEdge": {
+            "script": "helpers/Edge.ps1",
+            "uri": "https://edgeupdates.microsoft.com/api/products?view=enterprise"
+        },
+        "notepadPlusPlus": {
+            "script": "helpers/Notepad++.ps1"
+        }
+    }
 }
