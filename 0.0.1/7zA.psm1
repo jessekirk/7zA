@@ -8,11 +8,19 @@ function getLatestNotepadPlusPlus { & $(Join-Path -Path $i.ModuleBase -ChildPath
 
 $script:datetimeutc = dateTimeUtc
 
+function returnTotalBuildTime
+{
+    $endtime = [datetime]::Now ; $t = $endtime - $starttime
+    Write-Host -Object '' ; Write-Host -Object "Build minutes: $($t.TotalMinutes)" -ForegroundColor Cyan ; Write-Host -Object "Build seconds: $($t.TotalSeconds)" -ForegroundColor Cyan ; Write-Host ''
+}
+
+function rename7zReleasableToSamsVersion { Get-ChildItem -Path $fullyqualifieddestinationpath | Where-Object { $_.Name -eq 'Release' } | Rename-Item -NewName $($fullyqualifieddestinationpath | Split-Path -Leaf) -Force -Verbose ; returnTotalBuildTime }
+
 function remove7zPackageUpdatesAfterReleasble
 {
     $path = Get-ChildItem -Path $fullyqualifieddestinationpath -Recurse | Where-Object { $_.Name -notmatch 'Release' }
-    if ($noremove -eq $true) { $path | ForEach-Object { Write-Host -Object "Keeping file/folder '$_' after 'Release/' is built." -ForegroundColor Cyan } ; return }
-    Get-ChildItem -Path $fullyqualifieddestinationpath | Where-Object { $_.Name -notmatch 'Release' } | Remove-Item -Recurse -Force -Verbose
+    if ($noremove -eq $true) { $path | ForEach-Object { Write-Host -Object "Keeping file/folder '$_' after 'Release/' is built." -ForegroundColor Green } ; rename7zReleasableToSamsVersion ; return }
+    Get-ChildItem -Path $fullyqualifieddestinationpath | Where-Object { $_.Name -ne 'Release' } | Remove-Item -Recurse -Force -Verbose ; rename7zReleasableToSamsVersion
 }
 
 function begin256HashingOf7zPackage
@@ -48,11 +56,13 @@ function build7zPackage
         [parameter()][switch]$noRemove7zPackageUpdatesAfterReleasble
     )
 
+    $script:starttime = [datetime]::Now
+
     if ($noRemove7zPackageUpdatesAfterReleasble.IsPresent) { $script:noremove = $true } else { $noremove = $false }
     if (-not(Test-Path -Path $sourcePath -ErrorAction SilentlyContinue)) { throw "The source path $sourcePath does not exist." }
     if (-not($sourcePath.EndsWith('\'))) { $sourcePath += '\' }
 
-    $script:path = (Resolve-Path -Path $json.repo -ErrorAction SilentlyContinue).Path ; if ($path.Count -eq 1) { if (-not(Test-Path -Path "$path\.git")) { throw 'This requires a Git repository. Verify path to only 1 valid repo.' } }
+    $script:path = (Resolve-Path -Path $json.repo -ErrorAction SilentlyContinue).Path ; if ($null -ne $path) { if (-not(Test-Path -Path "$path\.git")) { throw 'This requires a Git repository. Verify path to only 1 valid repo.' } }
     (Get-ChildItem -Path "$path\monthly updates" -Recurse | Where-Object { $_.Name -match 'monthly_updates.ps1' }).FullName | Copy-Item -Destination $sourcePath -Container -Verbose
 
     $destinationpath = ($sourcePath | Split-Path -Leaf) + '_' + $datetimeutc + '.7z'
