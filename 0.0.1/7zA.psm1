@@ -11,7 +11,7 @@ $script:datetimeutc = dateTimeUtc
 function returnTotalBuildTime
 {
     $endtime = [datetime]::Now ; $t = $endtime - $starttime
-    Write-Host -Object '' ; Write-Host -Object "Build minutes: $($t.TotalMinutes)" -ForegroundColor Cyan ; Write-Host -Object "Build seconds: $($t.TotalSeconds)" -ForegroundColor Cyan ; Write-Host ''
+    Write-Host -Object '' ; Write-Host -Object "Build minutes: $($t.TotalMinutes)" -ForegroundColor Cyan ; Write-Host -Object "Build seconds: $($t.TotalSeconds)" -ForegroundColor Cyan ; Write-Host -Object ''
 }
 
 function rename7zReleasableToSamsVersion { Get-ChildItem -Path $fullyqualifieddestinationpath | Where-Object { $_.Name -eq 'Release' } | Rename-Item -NewName $($fullyqualifieddestinationpath | Split-Path -Leaf) -Force -Verbose ; returnTotalBuildTime }
