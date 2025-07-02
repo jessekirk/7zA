@@ -1,8 +1,12 @@
 $i = Get-Module -ListAvailable -Refresh 7zA
 $json = Get-Content -Path (Join-Path -Path $i.ModuleBase -ChildPath settings.json) | ConvertFrom-Json
-function datetimeutc { return (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmZ') }
 
-function sha256hashpackage
+function dateTimeUtc { return (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmZ') }
+function getLatestMsEdge { & $(Join-Path -Path $i.ModuleBase -ChildPath $json.helpers.msEdge.script -Resolve) }
+function getLatestCurl { & $(Join-Path -Path $i.ModuleBase -ChildPath $json.helpers.curl.script -Resolve) }
+function getLatestNotepadPlusPlus { & $(Join-Path -Path $i.ModuleBase -ChildPath $json.helpers.notepadPlusPlus.script -Resolve) }
+
+function begin256HashingOf7zPackage
 {
     $array = @()
     (Get-ChildItem -Path $fullyqualifieddestinationpath -Recurse -File).FullName | ForEach-Object {
@@ -14,7 +18,7 @@ function sha256hashpackage
     $logfilepath = (Get-ChildItem -Path $fullyqualifieddestinationpath -Recurse -File -Filter '*.7z').FullName.Replace('.7z', '_Sha256_values.txt') ; $array | Format-List | Out-File -FilePath $logfilepath
 }
 
-function buildreleasable
+function build7zReleasable
 {
     $fullyqualifieddestinationpath = $fullyqualifieddestinationpath | Split-Path -Parent ; $fullyqualifieddestinationpath = $fullyqualifieddestinationpath += '\'
 
@@ -24,7 +28,7 @@ function buildreleasable
     sha256hashpackage
 }
 
-function build7zpackage
+function build7zPackage
 {
     [cmdletbinding()]
     param([parameter(Mandatory)][string]$sourcepath)
