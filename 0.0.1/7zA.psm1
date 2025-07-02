@@ -6,6 +6,15 @@ function getLatestMsEdge { & $(Join-Path -Path $i.ModuleBase -ChildPath $json.he
 function getLatestCurl { & $(Join-Path -Path $i.ModuleBase -ChildPath $json.helpers.curl.script -Resolve) }
 function getLatestNotepadPlusPlus { & $(Join-Path -Path $i.ModuleBase -ChildPath $json.helpers.notepadPlusPlus.script -Resolve) }
 
+$script:datetimeutc = dateTimeUtc
+
+function remove7zPackageUpdatesAfterReleasble
+{
+    $path = Get-ChildItem -Path $fullyqualifieddestinationpath -Recurse | Where-Object { $_.Name -notmatch 'Release' }
+    if ($noremove -eq $true) { $path | ForEach-Object { Write-Host -Object "Keeping file/folder '$_' after 'Release/' is built." -ForegroundColor Cyan } ; return }
+    Get-ChildItem -Path $fullyqualifieddestinationpath | Where-Object { $_.Name -notmatch 'Release' } | Remove-Item -Recurse -Force -Verbose
+}
+
 function begin256HashingOf7zPackage
 {
     $array = @()
@@ -16,6 +25,7 @@ function begin256HashingOf7zPackage
     }
 
     $logfilepath = (Get-ChildItem -Path $fullyqualifieddestinationpath -Recurse -File -Filter '*.7z').FullName.Replace('.7z', '_Sha256_values.txt') ; $array | Format-List | Out-File -FilePath $logfilepath
+    Get-ChildItem -Path "$fullyqualifieddestinationpath\Release" -Recurse -Force | Unblock-File -Verbose ; remove7zPackageUpdatesAfterReleasble
 }
 
 function build7zReleasable
@@ -25,21 +35,29 @@ function build7zReleasable
     New-Item -Path $fullyqualifieddestinationpath -Name 'Release\bin' -ItemType Directory -Force -Verbose | Out-Null
     Move-Item -Path $(Join-Path -Path $fullyqualifieddestinationpath -ChildPath '*.7z') -Destination $(Join-Path -Path $fullyqualifieddestinationpath -ChildPath 'Release') -Verbose
     Join-Path -Path $i.ModuleBase -ChildPath $json.includes -Resolve | Copy-Item -Destination $(Join-Path -Path $fullyqualifieddestinationpath -ChildPath 'Release\bin') -Container -Verbose
-    sha256hashpackage
+    (Get-ChildItem -Path "$path\monthly updates" -Recurse | Where-Object { $_.Name -match 'monthly_updates.cmd' }).FullName | Copy-Item -Destination $(Join-Path -Path $fullyqualifieddestinationpath -ChildPath 'Release') -Container -Verbose
+    begin256HashingOf7zPackage
 }
 
 function build7zPackage
 {
     [cmdletbinding()]
-    param([parameter(Mandatory)][string]$sourcepath)
+    param
+    (
+        [parameter(Mandatory)][string]$sourcePath,
+        [parameter()][switch]$noRemove7zPackageUpdatesAfterReleasble
+    )
 
-    if (-not(Test-Path -Path $sourcepath -ErrorAction SilentlyContinue)) { throw "The source path $sourcepath does not exist." }
-    if (-not($sourcepath.EndsWith('\'))) { $sourcepath += '\' }
+    if ($noRemove7zPackageUpdatesAfterReleasble.IsPresent) { $script:noremove = $true } else { $noremove = $false }
+    if (-not(Test-Path -Path $sourcePath -ErrorAction SilentlyContinue)) { throw "The source path $sourcePath does not exist." }
+    if (-not($sourcePath.EndsWith('\'))) { $sourcePath += '\' }
 
-    $datetimeutc = datetimeutc
-    $destinationpath = ($sourcepath | Split-Path -Leaf) + '_' + $datetimeutc + '.7z'
-    $script:fullyqualifieddestinationpath = $sourcepath + $destinationpath
+    $script:path = (Resolve-Path -Path $json.repo -ErrorAction SilentlyContinue).Path ; if ($path.Count -eq 1) { if (-not(Test-Path -Path "$path\.git")) { throw 'This requires a Git repository. Verify path to only 1 valid repo.' } }
+    (Get-ChildItem -Path "$path\monthly updates" -Recurse | Where-Object { $_.Name -match 'monthly_updates.ps1' }).FullName | Copy-Item -Destination $sourcePath -Container -Verbose
 
-    $files = Get-ChildItem -Path $sourcepath -Recurse ; $files | ForEach-Object { Write-Verbose -Message "Adding $_ to $destinationpath" -Verbose }
-    & (Join-Path -Path $i.ModuleBase -ChildPath $json.sevenZ -Resolve) $json.args $fullyqualifieddestinationpath $sourcepath ; buildreleasable
+    $destinationpath = ($sourcePath | Split-Path -Leaf) + '_' + $datetimeutc + '.7z'
+    $script:fullyqualifieddestinationpath = $sourcePath + $destinationpath
+
+    $files = Get-ChildItem -Path $sourcePath -Recurse ; $files | Unblock-File -Verbose ; $files | ForEach-Object { Write-Verbose -Message "Adding $_ to $destinationpath" -Verbose }
+    & (Join-Path -Path $i.ModuleBase -ChildPath $json.sevenZ -Resolve) $json.args $fullyqualifieddestinationpath $sourcePath ; build7zReleasable
 }
