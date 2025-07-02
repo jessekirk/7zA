@@ -20,8 +20,7 @@
             "script": "helpers/curl.ps1"
         },
         "msEdge": {
-            "script": "helpers/Edge.ps1",
-            "uri": "https://edgeupdates.microsoft.com/api/products?view=enterprise"
+            "script": "helpers/Edge.ps1"
         },
         "notepadPlusPlus": {
             "script": "helpers/Notepad++.ps1"
