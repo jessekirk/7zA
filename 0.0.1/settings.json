@@ -10,11 +10,8 @@
         "-bt"
     ],
     "includes": "Dependencies/Includes/*.*",
-    "repo": [
-        "d:/Gitlab/win11",
-        "c:/Users/jesse.kirk/desktop/Gitlab/win11",
-        "c:/Users/jesse/desktop/Gitlab/win11"
-    ],
+    "repo": "d:/Gitlab/win11",
+    "share": "//172.16.30.11/me-prod-users/share/groups/sams-c2/automation",
     "helpers": {
         "curl": {
             "script": "helpers/curl.ps1"
