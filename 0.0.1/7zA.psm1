@@ -18,7 +18,7 @@ function rename7zReleasableToSamsVersion { Get-ChildItem -Path $fullyqualifiedde
 
 function remove7zPackageUpdatesAfterReleasble
 {
-    $path = Get-ChildItem -Path $fullyqualifieddestinationpath -Recurse | Where-Object { $_.Name -notmatch 'Release' }
+    $path = Get-ChildItem -Path $fullyqualifieddestinationpath -Recurse | Where-Object { $_.Name -ne 'Release' }
     if ($noremove -eq $true) { $path | ForEach-Object { Write-Host -Object "Keeping file/folder '$_' after 'Release/' is built." -ForegroundColor Green } ; rename7zReleasableToSamsVersion ; return }
     Get-ChildItem -Path $fullyqualifieddestinationpath | Where-Object { $_.Name -ne 'Release' } | Remove-Item -Recurse -Force -Verbose ; rename7zReleasableToSamsVersion
 }
